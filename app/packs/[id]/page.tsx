@@ -3,7 +3,8 @@
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, Layers, ShieldCheck, Sparkles, Trophy } from "lucide-react";
+import { ArrowLeft, ArrowRight, Layers, ShieldCheck, Trophy } from "lucide-react";
+import { PrediMark } from "@/components/PrediMark";
 import { packs } from "@/lib/mockData/packs";
 import { rarityValue, rarityLabel, rarityOrder, editionTotal } from "@/lib/pricing";
 import { PackArt } from "@/components/PackArt";
@@ -196,7 +197,7 @@ function Inner() {
                 </div>
               </div>
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent/10 text-accent">
-                <Sparkles className="h-5 w-5" />
+                <PrediMark className="h-5 w-5" />
               </div>
             </div>
 

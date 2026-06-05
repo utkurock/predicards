@@ -7,7 +7,7 @@ import { CardComponent } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { HydrationGate } from "@/components/HydrationGate";
 import { CommissionBanner } from "@/components/CommissionBanner";
-import { Layers3, Sparkles, Lock, Check, Trophy } from "lucide-react";
+import { Layers3, Lock, Check, Trophy } from "lucide-react";
 import { rarityWeight } from "@/lib/pricing";
 
 type Tab = "sets" | "team" | "player" | "stage" | "all";
