@@ -1,0 +1,46 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // A user can only read and write their OWN profile (uid == wallet address).
+    // Balance-affecting marketplace moves go through the Admin SDK (server routes),
+    // which bypasses these rules — so clients can't credit themselves by buying.
+    match /users/{uid} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Shared marketplace. Anyone signed in can browse. You may only create or
+    // delete a listing whose sellerId is your own address. Buys (which delete the
+    // listing + move balances) run server-side via Admin SDK.
+    match /listings/{listingId} {
+      allow read: if true;
+      allow create: if request.auth != null
+                    && request.resource.data.sellerId == request.auth.uid;
+      allow delete: if request.auth != null
+                    && resource.data.sellerId == request.auth.uid;
+      allow update: if false;
+    }
+
+    // Per-market commission ledger. Public read (powers the public markets page).
+    // Signed-in clients may bump supply when minting; fee distribution (accPerCard)
+    // is written server-side via the Admin SDK on each buy.
+    match /marketStats/{marketId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Adjustable commission rates (config/commission). Public read; signed-in write
+    // (demo /dev tool). Lock this down to admins in production.
+    match /config/{doc} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Auth nonces are written/cleared only by the server (Admin SDK).
+    match /nonces/{address} {
+      allow read, write: if false;
+    }
+  }
+}

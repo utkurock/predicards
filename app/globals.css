@@ -1,0 +1,352 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Default theme — LIGHT "liquid glass": airy off-white page, frosted white
+   panels with soft diffuse shadows, friendly emerald accent. (omnipair-style)
+   The dark palette lives under [data-theme="dark"] below.
+   Surface/line/text are space-separated RGB so rgb(var() / alpha) works.
+   ───────────────────────────────────────────────────────────────────────── */
+:root {
+  color-scheme: light;
+
+  /* ─── Accent (bright Base azure) ─── */
+  --accent: 32 124 255;       /* #207CFF lighter Base blue */
+  --accent-dim: 22 104 224;   /* #1668E0 pressed */
+  --accent-glow: 96 162 255;  /* #60A2FF hover/glow */
+  --accent-ink: 255 255 255;  /* white text/icons on an accent background */
+
+  /* ─── Surfaces / lines / text ─── */
+  --bg-base: 247 248 248;     /* #F7F8F8 soft off-white page */
+  --bg-elev: 255 255 255;     /* #FFFFFF */
+  --bg-card: 255 255 255;     /* #FFFFFF — cards float above the page */
+  --bg-hover: 240 242 241;    /* #F0F2F1 segmented-track / hover */
+  --line-subtle: 236 238 237; /* #ECEEED hairline */
+  --line: 224 227 225;        /* #E0E3E1 */
+  --line-bright: 206 210 208; /* #CED2D0 */
+  --text-primary: 14 19 17;      /* #0E1311 warm near-black */
+  --text-secondary: 92 101 95;   /* #5C655F muted */
+  --text-muted: 150 159 153;     /* #969F99 */
+
+  --live: 229 72 77;          /* #E5484D soft red (down / sell) */
+
+  /* ─── Liquid-glass shadows ─── soft, diffuse, layered ─── */
+  --shadow-sm: 0 1px 2px rgba(15, 23, 19, 0.04), 0 1px 1px rgba(15, 23, 19, 0.03);
+  --shadow-md: 0 1px 2px rgba(15, 23, 19, 0.04), 0 8px 22px -10px rgba(15, 23, 19, 0.12);
+  --shadow-lg: 0 2px 4px rgba(15, 23, 19, 0.05), 0 20px 40px -16px rgba(15, 23, 19, 0.16);
+  --glass-blur: blur(20px) saturate(150%);
+}
+
+/* ─── Dark theme (opt-in) — original midnight palette ─── */
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --accent: 32 124 255;       /* bright Base azure in dark too */
+  --accent-dim: 22 104 224;
+  --accent-glow: 96 162 255;
+  --accent-ink: 255 255 255;
+
+  --bg-base: 8 9 12;          /* #08090C */
+  --bg-elev: 15 17 22;        /* #0F1116 */
+  --bg-card: 19 22 29;        /* #13161D */
+  --bg-hover: 26 29 38;       /* #1A1D26 */
+  --line-subtle: 30 34 43;    /* #1E222B */
+  --line: 42 46 56;           /* #2A2E38 */
+  --line-bright: 56 60 72;    /* #383C48 */
+  --text-primary: 242 243 247;
+  --text-secondary: 139 143 161;
+  --text-muted: 91 95 110;
+
+  --live: 255 77 109;         /* #FF4D6D */
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 28px -12px rgba(0, 0, 0, 0.7);
+  --shadow-lg: 0 2px 6px rgba(0, 0, 0, 0.5), 0 24px 48px -16px rgba(0, 0, 0, 0.8);
+  --glass-blur: blur(20px) saturate(120%);
+}
+
+html,
+body {
+  background: rgb(var(--bg-base));
+  color: rgb(var(--text-primary));
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Soft ambient color washes behind everything — the faint glow that makes the
+   light theme feel alive rather than flat white. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 42% at 10% -4%, rgb(var(--accent) / 0.10), transparent 70%),
+    radial-gradient(52% 40% at 92% 2%, rgba(120, 150, 255, 0.10), transparent 72%),
+    radial-gradient(40% 30% at 50% 0%, rgba(150, 180, 255, 0.06), transparent 70%);
+}
+
+body {
+  font-feature-settings: "cv11", "ss01", "ss03";
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+::selection {
+  background: rgb(var(--accent) / 0.22);
+  color: rgb(var(--accent));
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--line-bright));
+  border-radius: 6px;
+  border: 2px solid rgb(var(--bg-base));
+}
+::-webkit-scrollbar-thumb:hover { background: rgb(var(--line)); }
+
+/* Tabular numerals */
+.tabular { font-variant-numeric: tabular-nums; }
+
+/* Big-number display */
+.bignum {
+  font-family: var(--font-inter);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Section title */
+.section-title {
+  font-family: var(--font-inter);
+  font-weight: 700;
+  font-size: 32px;
+  letter-spacing: -0.025em;
+  line-height: 1.05;
+  color: rgb(var(--text-primary));
+}
+
+.section-sub {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: rgb(var(--text-muted));
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* ─── Liquid-glass surface — frosted, translucent, soft-shadowed ─── */
+.glass {
+  background: rgb(var(--bg-card) / 0.72);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid rgb(var(--line-subtle));
+  box-shadow: var(--shadow-md);
+}
+
+/* Plain card — white, hairline border, soft lift */
+.card-soft {
+  background: rgb(var(--bg-card));
+  border: 1px solid rgb(var(--line-subtle));
+  border-radius: 16px;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Panel — the app-wide frosted-glass content surface. Translucent white over
+   the ambient washes + soft shadow = the "liquid glass" feel everywhere. */
+.panel {
+  background: rgb(var(--bg-card) / 0.72);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid rgb(var(--line-subtle));
+  border-radius: 16px;
+  box-shadow: var(--shadow-md);
+}
+
+/* Accent CTA */
+.btn-lime {
+  background: rgb(var(--accent));
+  color: rgb(var(--accent-ink));
+  font-weight: 600;
+  border-radius: 12px;
+  transition: all 0.18s ease;
+  box-shadow: var(--shadow-sm);
+}
+.btn-lime:hover:not(:disabled) {
+  background: rgb(var(--accent-glow));
+  box-shadow: 0 6px 20px -6px rgb(var(--accent) / 0.5);
+}
+.btn-lime:active:not(:disabled) {
+  background: rgb(var(--accent-dim));
+}
+.btn-lime:disabled {
+  background: rgb(var(--accent) / 0.18);
+  color: rgb(var(--accent-ink) / 0.5);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Segmented-control track + buttons (filters, timeframes, nav) */
+.segment {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgb(var(--bg-hover));
+  border: 1px solid rgb(var(--line-subtle));
+}
+.segment > button {
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgb(var(--text-secondary));
+  transition: all 0.15s ease;
+}
+.segment > button:hover { color: rgb(var(--text-primary)); }
+.segment > button[data-active="true"] {
+  background: rgb(var(--bg-card));
+  color: rgb(var(--text-primary));
+  box-shadow: var(--shadow-sm);
+}
+
+/* Pill (standalone toggle / tag) */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgb(var(--bg-card));
+  border: 1px solid rgb(var(--line-subtle));
+  font-size: 12px;
+  font-weight: 500;
+  color: rgb(var(--text-secondary));
+  transition: all 0.15s;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+.pill:hover {
+  border-color: rgb(var(--line));
+  color: rgb(var(--text-primary));
+}
+.pill[data-active="true"] {
+  background: rgb(var(--accent) / 0.1);
+  border-color: rgb(var(--accent) / 0.4);
+  color: rgb(var(--accent-dim));
+}
+
+/* Data tile (stat card) — frosted white with a faint accent sheen */
+.tile {
+  position: relative;
+  background: rgb(var(--bg-card) / 0.82);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid rgb(var(--line-subtle));
+  border-radius: 20px;
+  padding: 20px;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+.tile::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.5), transparent 32%),
+    radial-gradient(90% 70% at 100% 0%, rgb(var(--accent) / 0.06), transparent 60%);
+  pointer-events: none;
+  border-radius: inherit;
+}
+/* Dark: a bright-white top sheen reads as milky fog — use a faint highlight
+   and lean on the accent glow instead. */
+[data-theme="dark"] .tile::before {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 30%),
+    radial-gradient(90% 70% at 100% 0%, rgb(var(--accent) / 0.12), transparent 60%);
+}
+
+/* Token-pair logo stack */
+.logo-stack {
+  display: inline-flex;
+  align-items: center;
+}
+.logo-stack > * + * { margin-left: -10px; }
+
+/* Holographic shimmer for legendary/mythic */
+.shimmer-gold {
+  background: linear-gradient(100deg, rgba(232,181,71,0) 20%, rgba(232,181,71,0.18) 50%, rgba(232,181,71,0) 80%);
+  background-size: 200% 100%;
+  animation: shimmer 3s linear infinite;
+}
+.shimmer-mythic {
+  background: linear-gradient(100deg, rgba(255,92,156,0) 20%, rgba(255,92,156,0.25) 40%, rgba(232,181,71,0.25) 60%, rgba(168,255,53,0.18) 80%);
+  background-size: 220% 100%;
+  animation: shimmer 4s linear infinite;
+}
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Category backdrops — collectible card / pack faces stay rich & dark in BOTH
+   themes (light UI, vibrant cards — like Panini / Top Shot). Don't lighten. */
+.cat-tournament { background: linear-gradient(135deg, #161e30 0%, #0c1220 100%); }
+.cat-team       { background: linear-gradient(135deg, #1a1730 0%, #100d22 100%); }
+.cat-player     { background: linear-gradient(135deg, #2e1626 0%, #1a0d1b 100%); }
+.cat-match      { background: linear-gradient(135deg, #142d32 0%, #0c1c20 100%); }
+.cat-wild       { background: linear-gradient(135deg, #2e2316 0%, #1c170c 100%); }
+
+/* Grain — light speckle over the dark card/pack art */
+.grain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 4px 4px;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* Achievement / CTA band — a distinctly accent-tinted panel so it stands apart
+   from the plain white sections around it. */
+.achievement {
+  background:
+    radial-gradient(130% 95% at 100% 0%, rgb(var(--accent) / 0.28), transparent 62%),
+    radial-gradient(120% 95% at 0% 100%, rgb(var(--accent) / 0.12), transparent 60%),
+    linear-gradient(180deg, rgb(var(--accent) / 0.08), rgb(var(--bg-card)));
+  border: 1px solid rgb(var(--accent) / 0.18);
+  border-radius: 20px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: var(--shadow-md);
+}
+
+/* Live dot */
+.live-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgb(var(--live));
+  box-shadow: 0 0 8px rgb(var(--live) / 0.6);
+}
+
+/* Ticker scrolling */
+.ticker {
+  display: flex;
+  gap: 32px;
+  animation: tickerScroll 40s linear infinite;
+  white-space: nowrap;
+}
+@keyframes tickerScroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
