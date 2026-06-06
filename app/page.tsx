@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight, ArrowUpRight, Trophy, Layers3, Flame, Swords } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Trophy, Layers3, Swords } from "lucide-react";
 import { PackPicker } from "@/components/PackPicker";
 import { StatTile } from "@/components/StatTile";
 import { Sparkline, genSpark } from "@/components/Sparkline";
@@ -68,11 +68,10 @@ export default function LandingPage() {
       {/* QUICK LINKS — separate band with thin top divider */}
       <section className="border-t border-line-subtle">
         <div className="mx-auto max-w-[1180px] px-8 py-16">
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <QuickLink href="/leagues" icon={<Swords className="h-5 w-5" />} label="Leagues" sub="Daily fantasy" />
             <QuickLink href="/album" icon={<Layers3 className="h-5 w-5" />} label="Album" sub="Your collection" />
             <QuickLink href="/market" icon={<ArrowUpRight className="h-5 w-5" />} label="Market" sub="150 listings" />
-            <QuickLink href="/forge" icon={<Flame className="h-5 w-5" />} label="Forge" sub="3 → next tier" />
           </div>
         </div>
       </section>

@@ -207,15 +207,12 @@ function Inner() {
                     if (confirm("Burn this card? This cannot be undone.")) {
                       burnCards([card.id]);
                       toast("Card burned.", "info");
-                      router.push("/forge");
+                      router.push("/album");
                     }
                   }}
                 >
                   <Flame className="h-4 w-4" /> Burn
                 </Button>
-                <Link href="/forge">
-                  <Button variant="outline">Send to forge</Button>
-                </Link>
               </>
             )}
             {card.status === "listed" && (

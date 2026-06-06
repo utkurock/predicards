@@ -45,12 +45,6 @@ export function PackPicker() {
               Open
             </button>
             <button
-              onClick={() => router.push("/forge")}
-              className="rounded-lg px-3 py-1.5 text-sm text-text-secondary hover:text-text-primary"
-            >
-              Forge
-            </button>
-            <button
               onClick={() => router.push("/market")}
               className="rounded-lg px-3 py-1.5 text-sm text-text-secondary hover:text-text-primary"
             >

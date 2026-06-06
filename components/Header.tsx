@@ -15,7 +15,6 @@ const nav = [
   { href: "/leagues", label: "Leagues" },
   { href: "/album", label: "Album" },
   { href: "/market", label: "Trade" },
-  { href: "/forge", label: "Forge" },
 ];
 
 export function Header() {
