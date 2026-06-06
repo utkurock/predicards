@@ -9,14 +9,16 @@ import { Sparkline, genSpark } from "@/components/Sparkline";
 import { PriceTicker } from "@/components/PriceTicker";
 import { Button } from "@/components/Button";
 import { matchResults } from "@/lib/mockData/matchResults";
-import { listings } from "@/lib/mockData/listings";
+import { useStore } from "@/lib/store";
+import { cardValue } from "@/lib/pricing";
 
 export default function LandingPage() {
-  const movers = listings.slice(0, 5).map((l, i) => ({
-    listing: l,
-    spark: genSpark(i + 1, 24, 0.12),
-    change: ((Math.sin(i * 1.7) * 100) / 100) * 12 + 3,
-  }));
+  const markets = useStore((s) => s.markets);
+  // Top movers = the most-active live markets (real Polymarket art + data).
+  const movers = [...markets]
+    .sort((a, b) => (b.volume ?? 0) - (a.volume ?? 0))
+    .slice(0, 5)
+    .map((market, i) => ({ market, spark: genSpark(i + 1, 24, 0.12) }));
 
   return (
     <div className="relative pb-32">
@@ -141,40 +143,54 @@ export default function LandingPage() {
             <span className="w-16 text-right">24h</span>
             <span className="w-16 text-right">Trend</span>
           </div>
-          {movers.map((m) => (
-            <Link
-              key={m.listing.id}
-              href={`/market/${m.listing.id}`}
-              className="grid grid-cols-[1fr_auto_auto_auto_auto] items-center gap-6 border-b border-line-subtle px-6 py-5 transition-colors last:border-0 hover:bg-bg-card"
-            >
-              <div className="flex items-center gap-3">
-                <RarityChip rarity={m.listing.card.rarity} />
-                <span className="line-clamp-1 text-[14px]">{m.listing.card.statement}</span>
-              </div>
-              <span className="hidden tabular font-mono text-[12px] text-text-secondary md:inline">
-                {(m.listing.card.impliedOddsAtMint * 100).toFixed(1)}%
-              </span>
-              <span className="w-24 text-right tabular font-mono text-[14px] font-semibold">
-                {m.listing.price.toFixed(3)} <span className="text-text-muted">USDT</span>
-              </span>
-              <span
-                className={`w-16 text-right tabular font-mono text-[12px] ${
-                  m.change >= 0 ? "text-accent" : "text-live"
-                }`}
+          {movers.map((m) => {
+            const change = m.market.change24h ?? 0;
+            const up = change >= 0;
+            return (
+              <Link
+                key={m.market.id}
+                href="/markets"
+                className="grid grid-cols-[1fr_auto_auto_auto_auto] items-center gap-6 border-b border-line-subtle px-6 py-5 transition-colors last:border-0 hover:bg-bg-card"
               >
-                {m.change >= 0 ? "+" : ""}
-                {m.change.toFixed(1)}%
-              </span>
-              <div className="w-16">
-                <Sparkline
-                  data={m.spark}
-                  color={m.change >= 0 ? "#207CFF" : "#E5484D"}
-                  height={26}
-                  fill={false}
-                />
-              </div>
-            </Link>
-          ))}
+                <div className="flex items-center gap-3">
+                  {m.market.imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={m.market.imageUrl}
+                      alt=""
+                      loading="lazy"
+                      className="h-7 w-7 shrink-0 rounded-full object-cover"
+                    />
+                  ) : (
+                    <RarityChip rarity={m.market.rarity} />
+                  )}
+                  <span className="line-clamp-1 text-[14px]">{m.market.statement}</span>
+                </div>
+                <span className="hidden tabular font-mono text-[12px] text-text-secondary md:inline">
+                  {(m.market.impliedProbability * 100).toFixed(1)}%
+                </span>
+                <span className="w-24 text-right tabular font-mono text-[14px] font-semibold">
+                  {cardValue(m.market.rarity).toFixed(2)} <span className="text-text-muted">USDT</span>
+                </span>
+                <span
+                  className={`w-16 text-right tabular font-mono text-[12px] ${
+                    up ? "text-accent" : "text-live"
+                  }`}
+                >
+                  {up ? "+" : ""}
+                  {change.toFixed(1)}%
+                </span>
+                <div className="w-16">
+                  <Sparkline
+                    data={m.spark}
+                    color={up ? "#207CFF" : "#E5484D"}
+                    height={26}
+                    fill={false}
+                  />
+                </div>
+              </Link>
+            );
+          })}
         </div>
       </section>
 
