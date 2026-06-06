@@ -20,6 +20,7 @@ export type Market = {
   resolutionDate: string;
   status: MarketStatus;
   rarity: Rarity;
+  collection?: string; // top-level event collection id (see lib/collections.ts); defaults to world-cup
   // ─── Optional Polymarket provenance (present when sourced from the live API) ───
   imageUrl?: string;   // market art from Polymarket
   sourceUrl?: string;  // polymarket.com/market/{slug} — we're the middleman, link back

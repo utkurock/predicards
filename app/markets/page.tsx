@@ -1,15 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useStore } from "@/lib/store";
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useCommission } from "@/lib/commissionStore";
-import { RarityBadge } from "@/components/RarityBadge";
 import { CommissionBanner } from "@/components/CommissionBanner";
-import { estDailyYieldPerCard, IN_APP_FEE_RATE } from "@/lib/commission";
-import type { Category } from "@/lib/types";
-import { TrendingUp, TrendingDown, ExternalLink, Search } from "lucide-react";
+import { IN_APP_FEE_RATE } from "@/lib/commission";
+import { COLLECTIONS } from "@/lib/collections";
+import type { CollectionId } from "@/lib/collections";
+import { ArrowRight } from "lucide-react";
 
-const CATS: (Category | "all")[] = ["all", "tournament", "team", "player", "match", "wild"];
+type Summary = { id: CollectionId; marketCount: number; totalVolume: number; volume24h: number };
 
 function fmtVol(v: number | undefined): string {
   if (!v) return "—";
@@ -19,24 +19,27 @@ function fmtVol(v: number | undefined): string {
 }
 
 export default function MarketsPage() {
-  const markets = useStore((s) => s.markets);
   const stats = useCommission((s) => s.stats);
+  const [summaries, setSummaries] = useState<Record<string, Summary>>({});
 
-  const [cat, setCat] = useState<Category | "all">("all");
-  const [query, setQuery] = useState("");
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/markets?summary=1", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((d: { collections?: Summary[] }) => {
+        if (cancelled || !Array.isArray(d.collections)) return;
+        const map: Record<string, Summary> = {};
+        for (const s of d.collections) map[s.id] = s;
+        setSummaries(map);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
-  const rows = useMemo(() => {
-    let arr = [...markets];
-    if (cat !== "all") arr = arr.filter((m) => m.category === cat);
-    if (query.trim()) {
-      const q = query.toLowerCase();
-      arr = arr.filter((m) => m.statement.toLowerCase().includes(q));
-    }
-    return arr.sort((a, b) => (b.volume ?? 0) - (a.volume ?? 0));
-  }, [markets, cat, query]);
-
-  // Network-wide commission stats (realized in-app fees = accPerCard × supply per market).
-  const totals = useMemo(() => {
+  // Network-wide commission (only the World Cup collection mints today).
+  const network = useMemo(() => {
     let distributed = 0;
     let cards = 0;
     for (const s of Object.values(stats)) {
@@ -50,156 +53,78 @@ export default function MarketsPage() {
     <div className="mx-auto max-w-[1100px] px-6 py-10">
       <div className="flex flex-col gap-2">
         <p className="section-sub">Powered by Polymarket</p>
-        <h1 className="section-title">Markets</h1>
+        <h1 className="section-title">Marketplace</h1>
         <p className="max-w-2xl text-sm leading-relaxed text-text-secondary">
-          Every market here is a live Polymarket prediction market. Own its card and you earn from
-          both sides: passive yield as the prediction market trades on Polymarket, plus a{" "}
-          {Math.round(IN_APP_FEE_RATE * 100)}% commission on every secondary sale of its cards —
-          split equally across all holders.
+          Browse live prediction markets by collection. Own a World Cup card and you earn from both
+          sides — passive yield as its market trades on Polymarket, plus a{" "}
+          {Math.round(IN_APP_FEE_RATE * 100)}% commission on every secondary sale, split across
+          holders. More collections become mintable soon.
         </p>
       </div>
 
-      {/* Network commission stats */}
-      <div className="mt-6 grid grid-cols-3 gap-3">
-        <NetStat label="Live markets" value={`${markets.length}`} />
-        <NetStat label="Cards minted" value={`${totals.cards}`} />
-        <NetStat
-          label="Commission paid"
-          value={`${totals.distributed.toFixed(2)}`}
-          suffix="USDT"
-          accent
-        />
-      </div>
-
       {/* Earnings banner */}
-      <div className="mt-4">
+      <div className="mt-6">
         <CommissionBanner />
       </div>
 
-      {/* Filters */}
-      <div className="mt-8 flex flex-wrap items-center gap-2">
-        {CATS.map((c) => (
-          <button
-            key={c}
-            onClick={() => setCat(c)}
-            className="pill"
-            data-active={cat === c}
-          >
-            {c === "all" ? "All" : c[0].toUpperCase() + c.slice(1)}
-          </button>
-        ))}
-        <div className="relative ml-auto">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-muted" />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search markets…"
-            className="w-56 rounded-full border border-line-subtle bg-bg-card py-2 pl-9 pr-3 text-[13px] outline-none placeholder:text-text-muted focus:border-line"
-          />
-        </div>
-      </div>
-
-      {/* Table header */}
-      <div className="mt-4 hidden grid-cols-[1fr_90px_90px_110px_90px_120px] gap-3 border-b border-line-subtle px-4 pb-2 text-[10px] font-mono uppercase tracking-wider text-text-muted md:grid">
-        <span>Market</span>
-        <span className="text-right">Price</span>
-        <span className="text-right">24h</span>
-        <span className="text-right">PM Volume</span>
-        <span className="text-right">Cards</span>
-        <span className="text-right">Yield/day</span>
-      </div>
-
-      <div className="divide-y divide-line-subtle">
-        {rows.map((m) => {
-          const stat = stats[m.id] ?? { supply: 0, accPerCard: 0 };
-          const price = (m.impliedProbability * 100).toFixed(1);
-          const up = (m.change24h ?? 0) >= 0;
+      {/* Collections grid */}
+      <div className="mt-8 grid gap-4 sm:grid-cols-2">
+        {COLLECTIONS.map((c) => {
+          const s = summaries[c.id];
+          const isWc = c.id === "world-cup";
           return (
-            <div
-              key={m.id}
-              className="grid grid-cols-2 items-center gap-3 px-4 py-3 md:grid-cols-[1fr_90px_90px_110px_90px_120px]"
+            <Link
+              key={c.id}
+              href={`/markets/${c.id}`}
+              className="group panel overflow-hidden shadow-soft transition hover:shadow-lg"
             >
-              <div className="col-span-2 flex min-w-0 items-center gap-3 md:col-span-1">
-                {m.imageUrl && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={m.imageUrl}
-                    alt=""
-                    loading="lazy"
-                    className="h-9 w-9 shrink-0 rounded-md object-cover"
-                  />
-                )}
-                <div className="min-w-0">
+              {/* Cover */}
+              <div
+                className="relative flex h-28 items-end p-4"
+                style={{
+                  background: `linear-gradient(135deg, rgb(${c.accent} / 0.22), rgb(${c.accent} / 0.04))`,
+                }}
+              >
+                <span className="absolute right-4 top-3 text-4xl drop-shadow-sm">{c.emoji}</span>
+                <div>
                   <div className="flex items-center gap-2">
-                    <RarityBadge rarity={m.rarity} size="xs" />
-                    <span className="truncate text-[13px] font-medium">{m.statement}</span>
+                    <h3 className="text-base font-semibold text-text-primary">{c.label}</h3>
+                    {!c.mintable && (
+                      <span className="rounded-full border border-line-subtle bg-bg-card/70 px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider text-text-muted">
+                        Browse
+                      </span>
+                    )}
                   </div>
-                  {m.sourceUrl && (
-                    <a
-                      href={m.sourceUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="mt-0.5 inline-flex items-center gap-1 font-mono text-[10px] text-text-muted hover:text-text-secondary"
-                    >
-                      Polymarket <ExternalLink className="h-2.5 w-2.5" />
-                    </a>
-                  )}
+                  <p className="mt-0.5 max-w-[85%] text-[11px] leading-snug text-text-secondary">
+                    {c.blurb}
+                  </p>
                 </div>
               </div>
-              <span className="tabular text-right font-mono text-[13px] text-text-primary">
-                {price}%
-              </span>
-              <span
-                className={`tabular flex items-center justify-end gap-0.5 font-mono text-[12px] ${
-                  up ? "text-accent" : "text-live"
-                }`}
-              >
-                {up ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                {Math.abs(m.change24h ?? 0).toFixed(1)}
-              </span>
-              <span className="tabular text-right font-mono text-[12px] text-text-secondary">
-                {fmtVol(m.volume)}
-              </span>
-              <span className="tabular text-right font-mono text-[12px] text-text-secondary">
-                {stat.supply || 0}
-              </span>
-              <span className="tabular text-right font-mono text-[12px] text-accent">
-                {(() => {
-                  const y = estDailyYieldPerCard(m, stat);
-                  return y >= 0.01 ? `${y.toFixed(2)}` : "<0.01";
-                })()}
-              </span>
-            </div>
+
+              {/* Stats */}
+              <div className="flex items-center gap-5 px-4 py-3">
+                <Stat label="Markets" value={s ? `${s.marketCount}` : "—"} />
+                <Stat label="Volume" value={fmtVol(s?.totalVolume)} />
+                {isWc ? (
+                  <Stat label="Cards" value={`${network.cards}`} />
+                ) : (
+                  <Stat label="24h" value={fmtVol(s?.volume24h)} />
+                )}
+                <ArrowRight className="ml-auto h-4 w-4 text-text-muted transition group-hover:translate-x-0.5 group-hover:text-accent" />
+              </div>
+            </Link>
           );
         })}
-        {rows.length === 0 && (
-          <div className="px-4 py-16 text-center text-sm text-text-muted">
-            No markets match your filters.
-          </div>
-        )}
       </div>
     </div>
   );
 }
 
-function NetStat({
-  label,
-  value,
-  suffix,
-  accent,
-}: {
-  label: string;
-  value: string;
-  suffix?: string;
-  accent?: boolean;
-}) {
+function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="panel px-4 py-3 shadow-soft">
-      <div className="font-mono text-[10px] uppercase tracking-wider text-text-muted">{label}</div>
-      <div className={`mt-1 tabular font-mono text-lg font-semibold ${accent ? "text-accent" : "text-text-primary"}`}>
-        {value}
-        {suffix && <span className="ml-1 text-[11px] font-normal text-text-muted">{suffix}</span>}
-      </div>
+    <div>
+      <div className="font-mono text-[9px] uppercase tracking-wider text-text-muted">{label}</div>
+      <div className="tabular mt-0.5 font-mono text-sm font-semibold text-text-primary">{value}</div>
     </div>
   );
 }

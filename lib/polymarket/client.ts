@@ -1,19 +1,19 @@
-// Polymarket as the underlying data source — we pull real World Cup prediction
-// markets from the public Gamma API and wrap them as our collectible-card Markets.
-// We are the middleman: prices, volume, and resolution all come from Polymarket.
+// Polymarket as the underlying data source — we pull real prediction markets from
+// the public Gamma API and wrap them as our collectible-card Markets. We are the
+// middleman: prices, volume, and resolution all come from Polymarket.
+//
+// Markets are organised into top-level "collections" (see lib/collections.ts). Each
+// collection maps to one Polymarket tag; we fetch per-tag, map to our shape, and stamp
+// every market with its collection id. The World Cup collection is the mint pool;
+// the others are browse-only (phase 1).
 
 import type { Market, Category, Rarity, MarketStatus } from "../types";
 import type { GammaEvent, GammaMarket } from "./types";
+import { COLLECTIONS, PRIMARY_COLLECTION, getCollection } from "../collections";
+import type { Collection, CollectionId } from "../collections";
 
 const GAMMA = "https://gamma-api.polymarket.com";
 const TTL_MS = 180_000; // in-memory cache window (~3 min)
-const MAX_MARKETS = 120; // cap payload + keep minting pool sane
-const PER_EVENT = 14; // per-event cap so a 60-outcome "Winner" event can't flood the pool
-
-// The "fifa-world-cup" tag is the comprehensive source (Winner, Top Goalscorer, all
-// group winners, continent…). Its full payload exceeds Next's 2MB fetch-cache limit,
-// so we fetch it uncached and cache the small mapped result ourselves (below).
-const WORLD_CUP_TAG = "fifa-world-cup";
 
 // Parse a JSON-encoded string field; return [] on anything unexpected.
 function parseJsonArray(raw: string | undefined): string[] {
@@ -37,6 +37,8 @@ function rarityFromProbability(p: number): Rarity {
 }
 
 // Map a Polymarket question/event into our card categories using keyword heuristics.
+// These are tuned for World Cup; other collections fall through to "wild" (the
+// category sub-filter is only surfaced for the World Cup collection in the UI).
 function categoryFor(question: string, eventTitle: string): Category {
   const q = `${eventTitle} ${question}`.toLowerCase();
   if (/\bvs\.?\b| v\. | versus /.test(q)) return "match";
@@ -53,7 +55,7 @@ function statusFor(gm: GammaMarket, yesProb: number): MarketStatus {
   return "live";
 }
 
-function mapMarket(gm: GammaMarket, event: GammaEvent): Market | null {
+function mapMarket(gm: GammaMarket, event: GammaEvent, collectionId: CollectionId): Market | null {
   const statement = (gm.question || gm.groupItemTitle || "").trim();
   if (!statement) return null;
 
@@ -74,6 +76,7 @@ function mapMarket(gm: GammaMarket, event: GammaEvent): Market | null {
     id: `pm_${gm.id}`,
     statement,
     category,
+    collection: collectionId,
     impliedProbability: yesProb,
     resolutionDate: (gm.endDate || event.title || "").slice(0, 10) || "2026-07-19",
     status: statusFor(gm, yesProb),
@@ -101,16 +104,19 @@ async function fetchEventsByTag(tagSlug: string): Promise<GammaEvent[]> {
   }
 }
 
-// Process-level cache of the mapped result so we hit Polymarket at most once per TTL.
-let cache: { at: number; markets: Market[] } | null = null;
+// Per-collection process-level cache of the mapped result so we hit Polymarket at
+// most once per TTL per tag. The raw payloads exceed Next's 2MB fetch-cache limit,
+// so we own the caching here.
+const cache = new Map<CollectionId, { at: number; markets: Market[] }>();
 
-// Pull every World Cup market from the fifa-world-cup tag, map to our shape, cache.
-export async function fetchWorldCupMarkets(): Promise<Market[]> {
-  if (cache && Date.now() - cache.at < TTL_MS) return cache.markets;
+// Pull one collection's markets from its Polymarket tag, map to our shape, cache.
+export async function fetchCollectionMarkets(collection: Collection): Promise<Market[]> {
+  const cached = cache.get(collection.id);
+  if (cached && Date.now() - cached.at < TTL_MS) return cached.markets;
 
-  const wcEvents = await fetchEventsByTag(WORLD_CUP_TAG);
+  const evts = await fetchEventsByTag(collection.tagSlug);
   const events = new Map<string, GammaEvent>();
-  for (const e of wcEvents) events.set(e.id, e);
+  for (const e of evts) events.set(e.id, e);
 
   const markets: Market[] = [];
   const seen = new Set<string>();
@@ -118,10 +124,10 @@ export async function fetchWorldCupMarkets(): Promise<Market[]> {
     // Favorites first within each event — surfaces the marquee cards (Brazil, Argentina,
     // Mbappé…) instead of a flood of ~0% longshots — then cap the event's contribution.
     const mapped = (event.markets || [])
-      .map((gm) => mapMarket(gm, event))
+      .map((gm) => mapMarket(gm, event, collection.id))
       .filter((m): m is Market => m !== null)
       .sort((a, b) => b.impliedProbability - a.impliedProbability)
-      .slice(0, PER_EVENT);
+      .slice(0, collection.perEventCap);
     for (const m of mapped) {
       if (!seen.has(m.id)) {
         seen.add(m.id);
@@ -132,8 +138,46 @@ export async function fetchWorldCupMarkets(): Promise<Market[]> {
 
   // Most-traded first, so the ticker and pack pool surface the liquid, relevant markets.
   markets.sort((a, b) => (b.volume ?? 0) - (a.volume ?? 0));
-  const result = markets.slice(0, MAX_MARKETS);
+  const result = markets.slice(0, collection.maxMarkets);
 
-  if (result.length > 0) cache = { at: Date.now(), markets: result };
+  if (result.length > 0) cache.set(collection.id, { at: Date.now(), markets: result });
   return result;
+}
+
+// Back-compat: the store/pack pool drives off World Cup. MarketsLoader + /api/markets
+// (no params) still call this; it's just the primary collection now.
+export async function fetchWorldCupMarkets(): Promise<Market[]> {
+  const wc = getCollection(PRIMARY_COLLECTION);
+  return wc ? fetchCollectionMarkets(wc) : [];
+}
+
+// Fetch a collection's markets by id (used by the marketplace collection pages).
+export async function fetchMarketsByCollectionId(id: string): Promise<Market[]> {
+  const c = getCollection(id);
+  return c ? fetchCollectionMarkets(c) : [];
+}
+
+export type CollectionSummary = {
+  id: CollectionId;
+  marketCount: number;
+  totalVolume: number;
+  volume24h: number;
+};
+
+// Lightweight stats per collection for the marketplace landing grid. Fetches every
+// collection (each cached independently), then summarises — cheap after warm-up.
+export async function fetchCollectionSummaries(): Promise<CollectionSummary[]> {
+  const summaries = await Promise.all(
+    COLLECTIONS.map(async (c) => {
+      const markets = await fetchCollectionMarkets(c);
+      let totalVolume = 0;
+      let volume24h = 0;
+      for (const m of markets) {
+        totalVolume += m.volume ?? 0;
+        volume24h += m.volume24hr ?? 0;
+      }
+      return { id: c.id, marketCount: markets.length, totalVolume, volume24h };
+    })
+  );
+  return summaries;
 }
