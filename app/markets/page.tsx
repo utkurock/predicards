@@ -1,130 +1,184 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import { useCommission } from "@/lib/commissionStore";
 import { CommissionBanner } from "@/components/CommissionBanner";
+import { MarketTile } from "@/components/MarketTile";
 import { IN_APP_FEE_RATE } from "@/lib/commission";
 import { COLLECTIONS } from "@/lib/collections";
 import type { CollectionId } from "@/lib/collections";
-import { ArrowRight } from "lucide-react";
+import type { Market } from "@/lib/types";
+import { Search } from "lucide-react";
 
-type Summary = { id: CollectionId; marketCount: number; totalVolume: number; volume24h: number };
+const PAGE = 48; // tiles rendered per "page" — keeps the grid snappy across 360 markets
 
-function fmtVol(v: number | undefined): string {
-  if (!v) return "—";
-  if (v >= 1_000_000) return `$${(v / 1_000_000).toFixed(1)}M`;
-  if (v >= 1_000) return `$${(v / 1_000).toFixed(0)}K`;
-  return `$${v.toFixed(0)}`;
-}
+type Filter = CollectionId | "all";
 
 export default function MarketsPage() {
-  const stats = useCommission((s) => s.stats);
-  const [summaries, setSummaries] = useState<Record<string, Summary>>({});
+  const [markets, setMarkets] = useState<Market[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<Filter>("all");
+  const [query, setQuery] = useState("");
+  const [visible, setVisible] = useState(PAGE);
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/markets?summary=1", { cache: "no-store" })
+    fetch("/api/markets?all=1", { cache: "no-store" })
       .then((r) => r.json())
-      .then((d: { collections?: Summary[] }) => {
-        if (cancelled || !Array.isArray(d.collections)) return;
-        const map: Record<string, Summary> = {};
-        for (const s of d.collections) map[s.id] = s;
-        setSummaries(map);
+      .then((d: { markets?: Market[] }) => {
+        if (!cancelled && Array.isArray(d.markets)) setMarkets(d.markets);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
     return () => {
       cancelled = true;
     };
   }, []);
 
-  // Network-wide commission (only the World Cup collection mints today).
-  const network = useMemo(() => {
-    let distributed = 0;
-    let cards = 0;
-    for (const s of Object.values(stats)) {
-      distributed += (s.accPerCard ?? 0) * (s.supply ?? 0);
-      cards += s.supply ?? 0;
+  // Counts per collection for the filter chips.
+  const counts = useMemo(() => {
+    const map: Record<string, number> = { all: markets.length };
+    for (const m of markets) {
+      const k = m.collection ?? "world-cup";
+      map[k] = (map[k] ?? 0) + 1;
     }
-    return { distributed, cards };
-  }, [stats]);
+    return map;
+  }, [markets]);
+
+  const filtered = useMemo(() => {
+    let arr = markets;
+    if (filter !== "all") arr = arr.filter((m) => (m.collection ?? "world-cup") === filter);
+    if (query.trim()) {
+      const q = query.toLowerCase();
+      arr = arr.filter((m) => m.statement.toLowerCase().includes(q));
+    }
+    return arr;
+  }, [markets, filter, query]);
+
+  // Reset the visible window whenever the filter/search changes.
+  useEffect(() => {
+    setVisible(PAGE);
+  }, [filter, query]);
+
+  const shown = filtered.slice(0, visible);
 
   return (
-    <div className="mx-auto max-w-[1100px] px-6 py-10">
+    <div className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="flex flex-col gap-2">
         <p className="section-sub">Powered by Polymarket</p>
         <h1 className="section-title">Marketplace</h1>
         <p className="max-w-2xl text-sm leading-relaxed text-text-secondary">
-          Browse live prediction markets by collection. Own a World Cup card and you earn from both
-          sides — passive yield as its market trades on Polymarket, plus a{" "}
-          {Math.round(IN_APP_FEE_RATE * 100)}% commission on every secondary sale, split across
-          holders. More collections become mintable soon.
+          Every live prediction market, in one place. Filter by collection — own a World Cup card
+          and you earn a {Math.round(IN_APP_FEE_RATE * 100)}% commission on every secondary sale plus
+          passive yield as its market trades. More collections become mintable soon.
         </p>
       </div>
 
-      {/* Earnings banner */}
       <div className="mt-6">
         <CommissionBanner />
       </div>
 
-      {/* Collections grid */}
-      <div className="mt-8 grid gap-4 sm:grid-cols-2">
-        {COLLECTIONS.map((c) => {
-          const s = summaries[c.id];
-          const isWc = c.id === "world-cup";
-          return (
-            <Link
-              key={c.id}
-              href={`/markets/${c.id}`}
-              className="group panel overflow-hidden shadow-soft transition hover:shadow-lg"
-            >
-              {/* Cover */}
-              <div
-                className="relative flex h-28 items-end p-4"
-                style={{
-                  background: `linear-gradient(135deg, rgb(${c.accent} / 0.22), rgb(${c.accent} / 0.04))`,
-                }}
-              >
-                <span className="absolute right-4 top-3 text-4xl drop-shadow-sm">{c.emoji}</span>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-base font-semibold text-text-primary">{c.label}</h3>
-                    {!c.mintable && (
-                      <span className="rounded-full border border-line-subtle bg-bg-card/70 px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider text-text-muted">
-                        Browse
-                      </span>
-                    )}
-                  </div>
-                  <p className="mt-0.5 max-w-[85%] text-[11px] leading-snug text-text-secondary">
-                    {c.blurb}
-                  </p>
-                </div>
-              </div>
-
-              {/* Stats */}
-              <div className="flex items-center gap-5 px-4 py-3">
-                <Stat label="Markets" value={s ? `${s.marketCount}` : "—"} />
-                <Stat label="Volume" value={fmtVol(s?.totalVolume)} />
-                {isWc ? (
-                  <Stat label="Cards" value={`${network.cards}`} />
-                ) : (
-                  <Stat label="24h" value={fmtVol(s?.volume24h)} />
-                )}
-                <ArrowRight className="ml-auto h-4 w-4 text-text-muted transition group-hover:translate-x-0.5 group-hover:text-accent" />
-              </div>
-            </Link>
-          );
-        })}
+      {/* Sticky filter bar */}
+      <div className="sticky top-[68px] z-20 mt-8 -mx-2 flex flex-wrap items-center gap-2 rounded-2xl bg-bg-base/80 px-2 py-2 backdrop-blur-md">
+        <FilterChip
+          active={filter === "all"}
+          onClick={() => setFilter("all")}
+          label="All"
+          count={counts.all}
+        />
+        {COLLECTIONS.map((c) => (
+          <FilterChip
+            key={c.id}
+            active={filter === c.id}
+            onClick={() => setFilter(c.id)}
+            label={c.label}
+            emoji={c.emoji}
+            accent={c.accent}
+            count={counts[c.id]}
+          />
+        ))}
+        <div className="relative ml-auto">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-muted" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search markets…"
+            className="w-56 rounded-full border border-line-subtle bg-bg-card py-2 pl-9 pr-3 text-[13px] outline-none placeholder:text-text-muted focus:border-line"
+          />
+        </div>
       </div>
+
+      {/* Product grid */}
+      {loading && markets.length === 0 ? (
+        <div className="grid grid-cols-2 gap-4 py-6 sm:grid-cols-3 lg:grid-cols-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="panel aspect-[16/10] animate-pulse opacity-60" />
+          ))}
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="py-20 text-center text-sm text-text-muted">No markets match your filters.</div>
+      ) : (
+        <>
+          <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+            {shown.map((m) => (
+              <MarketTile key={m.id} m={m} />
+            ))}
+          </div>
+          {visible < filtered.length && (
+            <div className="mt-8 flex justify-center">
+              <button
+                onClick={() => setVisible((v) => v + PAGE)}
+                className="rounded-full border border-line bg-bg-card px-5 py-2.5 text-[13px] font-medium text-text-primary shadow-soft transition hover:border-line-bright"
+              >
+                Load more · {filtered.length - visible} left
+              </button>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function FilterChip({
+  active,
+  onClick,
+  label,
+  emoji,
+  accent,
+  count,
+}: {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+  emoji?: string;
+  accent?: string;
+  count?: number;
+}) {
   return (
-    <div>
-      <div className="font-mono text-[9px] uppercase tracking-wider text-text-muted">{label}</div>
-      <div className="tabular mt-0.5 font-mono text-sm font-semibold text-text-primary">{value}</div>
-    </div>
+    <button
+      onClick={onClick}
+      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[13px] font-medium transition ${
+        active
+          ? ""
+          : "border-line-subtle bg-bg-card text-text-secondary hover:border-line hover:text-text-primary"
+      }`}
+      style={
+        active
+          ? {
+              borderColor: `rgb(${accent ?? "32 124 255"})`,
+              background: `rgb(${accent ?? "32 124 255"} / 0.12)`,
+              color: `rgb(${accent ?? "32 124 255"})`,
+            }
+          : undefined
+      }
+    >
+      {emoji && <span>{emoji}</span>}
+      {label}
+      {typeof count === "number" && (
+        <span className="tabular font-mono text-[10px] opacity-60">{count}</span>
+      )}
+    </button>
   );
 }

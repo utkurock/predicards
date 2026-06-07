@@ -31,6 +31,11 @@ export type GammaTag = {
   label?: string;
 };
 
+export type GammaSeries = {
+  title?: string;
+  slug?: string;
+};
+
 export type GammaEvent = {
   id: string;
   title?: string;
@@ -38,6 +43,17 @@ export type GammaEvent = {
   closed?: boolean;
   active?: boolean;
   volume?: number;
+  volume24hr?: number;
   tags?: GammaTag[];
   markets?: GammaMarket[];
+  // ─── Live-game fields (present on sports "match" events) ───
+  startDate?: string;
+  endDate?: string;
+  live?: boolean;
+  ended?: boolean;
+  score?: string; // "2-1" (home-away) for soccer; "g-g|s-s|Bo5" for esports
+  period?: string; // "1H" | "2H" | "HT" | "FT" | "SUS" …
+  elapsed?: string | number; // minutes played
+  image?: string;
+  series?: GammaSeries[]; // league/competition, e.g. [{ title: "La Liga 2" }]
 };

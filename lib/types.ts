@@ -86,6 +86,28 @@ export type MatchResult = {
   note: string;
 };
 
+// Live match feed item — a real sports fixture sourced from Polymarket game events.
+// Win probabilities are the normalised moneyline (home/draw/away) prices.
+export type MatchFeedStatus = "upcoming" | "live" | "final";
+
+export type MatchFeedItem = {
+  id: string;
+  league?: string; // competition label, e.g. "La Liga 2", "Fifa Friendly"
+  home: string;
+  away: string;
+  homeProb?: number; // normalised 0–1 moneyline win prob
+  drawProb?: number;
+  awayProb?: number;
+  homeScore?: number;
+  awayScore?: number;
+  status: MatchFeedStatus;
+  clock?: string; // live game clock, e.g. "2H 73'", "HT", "FT"
+  kickoff: string; // ISO start time
+  volume24hr?: number;
+  sourceUrl?: string; // polymarket.com/event/{slug}
+  imageUrl?: string;
+};
+
 export type LeagueTier = "bronze" | "silver" | "champion";
 export type LeagueStatus = "open" | "live" | "finished";
 

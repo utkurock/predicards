@@ -3,6 +3,7 @@ import {
   fetchWorldCupMarkets,
   fetchMarketsByCollectionId,
   fetchCollectionSummaries,
+  fetchAllMarkets,
 } from "@/lib/polymarket/client";
 import { isCollectionId } from "@/lib/collections";
 
@@ -23,6 +24,14 @@ export async function GET(req: Request) {
     if (searchParams.get("summary") === "1") {
       const collections = await fetchCollectionSummaries();
       return NextResponse.json({ collections, source: "polymarket" }, { headers: CACHE });
+    }
+
+    if (searchParams.get("all") === "1") {
+      const markets = await fetchAllMarkets();
+      return NextResponse.json(
+        { markets, source: "polymarket", count: markets.length },
+        { headers: CACHE }
+      );
     }
 
     const collection = searchParams.get("collection") ?? undefined;

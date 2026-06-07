@@ -1,7 +1,16 @@
 "use client";
 
 import clsx from "clsx";
+import Image from "next/image";
 import type { PackTier } from "@/lib/types";
+
+// Tiers with bespoke pack artwork in /public/packs. Others fall back to the
+// procedural foil treatment below.
+const tierImage: Partial<Record<PackTier, string>> = {
+  bronze: "/packs/bronze.jpg",
+  silver: "/packs/silver.jpg",
+  gold: "/packs/gold.jpg",
+};
 
 const tierStyle: Record<PackTier, { bg: string; accent: string; label: string }> = {
   bronze: {
@@ -36,6 +45,31 @@ export function PackArt({
   size?: "sm" | "md" | "lg";
 }) {
   const s = tierStyle[tier];
+  const art = tierImage[tier];
+
+  if (art) {
+    return (
+      <div
+        className={clsx(
+          "relative aspect-[3/4] overflow-hidden rounded-2xl border border-line shadow-2xl",
+          className
+        )}
+        style={{ boxShadow: `0 24px 60px -20px ${s.accent}30, inset 0 1px 0 rgba(255,255,255,0.06)` }}
+      >
+        <Image
+          src={art}
+          alt={`${s.label} pack`}
+          fill
+          sizes="(max-width: 768px) 50vw, 320px"
+          className="object-cover"
+          priority={size === "lg"}
+        />
+        {/* Shine */}
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_30%_15%,rgba(255,255,255,0.18),transparent_55%)]" />
+      </div>
+    );
+  }
+
   return (
     <div
       className={clsx(
@@ -87,7 +121,7 @@ export function PackArt({
       {/* Bottom edge */}
       <div className="absolute inset-x-0 bottom-0 border-t border-white/5 p-4">
         <div className="flex items-center justify-between text-[10px] font-medium uppercase tracking-wider text-white/40">
-          <span>FIFA 26</span>
+          <span>Predicards</span>
           <span>×1</span>
         </div>
       </div>

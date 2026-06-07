@@ -1,11 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Trophy, Users, Coins, CalendarDays } from "lucide-react";
+import { ArrowRight, Trophy, Users, Coins, CalendarDays, Medal, Crown } from "lucide-react";
 import { todaysLeagues } from "@/lib/mockData/leagues";
 import { useStore } from "@/lib/store";
 import { HydrationGate } from "@/components/HydrationGate";
-import { tierColor, tierLabel } from "@/lib/leagueLogic";
+import { tierLabel, tierTheme } from "@/lib/leagueLogic";
+import type { LeagueTier } from "@/lib/types";
+
+function TierEmblem({ tier, className }: { tier: LeagueTier; className?: string }) {
+  if (tier === "champion") return <Crown className={className} />;
+  if (tier === "silver") return <Medal className={className} />;
+  return <Medal className={className} />;
+}
 
 export default function LeaguesPage() {
   return (
@@ -41,41 +48,61 @@ function Inner() {
           const state = leagues[league.id];
           const joined = !!state;
           const pot = league.entryFee * league.capacity;
-          const color = tierColor(league.tier);
+          const theme = tierTheme(league.tier);
 
           return (
             <Link
               key={league.id}
               href={`/leagues/${league.id}`}
-              className="group relative flex h-full flex-col gap-5 overflow-hidden panel p-6 transition-all hover:border-line"
+              className="group relative flex h-full flex-col overflow-hidden panel p-0 shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lg"
             >
+              {/* ─── Premium tier hero banner ─── */}
               <div
-                className="pointer-events-none absolute inset-x-0 top-0 h-px"
-                style={{ background: `linear-gradient(90deg, transparent, ${color}, transparent)` }}
-              />
-              <div
-                className="pointer-events-none absolute -left-12 -top-12 h-32 w-32 rounded-full opacity-[0.08] blur-2xl"
-                style={{ background: color }}
-              />
+                className="relative h-32 overflow-hidden"
+                style={{ background: theme.grad }}
+              >
+                {/* fine dot texture */}
+                <div
+                  className="pointer-events-none absolute inset-0 opacity-[0.18] mix-blend-overlay"
+                  style={{
+                    backgroundImage:
+                      "radial-gradient(rgba(255,255,255,0.9) 1px, transparent 1.4px)",
+                    backgroundSize: "11px 11px",
+                  }}
+                />
+                {/* oversized emblem watermark */}
+                <TierEmblem
+                  tier={league.tier}
+                  className="pointer-events-none absolute -right-3 -top-4 h-40 w-40 opacity-25"
+                />
+                {/* diagonal shine sweep on hover */}
+                <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/35 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
 
-              <div className="relative flex items-start justify-between">
-                <div>
-                  <div className="font-mono text-[10px] uppercase tracking-[0.14em]" style={{ color }}>
-                    {tierLabel[league.tier]}
+                {/* title block */}
+                <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-4">
+                  <div className="drop-shadow-sm">
+                    <div className="flex items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-white/85">
+                      <TierEmblem tier={league.tier} className="h-3.5 w-3.5" />
+                      {tierLabel[league.tier]}
+                    </div>
+                    <h2 className="mt-0.5 text-[22px] font-bold leading-tight text-white">
+                      {league.name}
+                    </h2>
                   </div>
-                  <h2 className="mt-1 text-[20px] font-bold leading-tight">{league.name}</h2>
+                  {joined && (
+                    <span className="rounded-full border border-white/30 bg-white/15 px-2 py-0.5 text-[10px] font-medium text-white backdrop-blur-sm">
+                      {state!.status === "finished" && !state!.claimed
+                        ? "Ready to claim"
+                        : state!.status === "finished"
+                        ? "Settled"
+                        : `Round ${state!.currentRound}/${league.rounds}`}
+                    </span>
+                  )}
                 </div>
-                {joined && (
-                  <span className="rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 text-[10px] font-medium text-accent">
-                    {state!.status === "finished" && !state!.claimed
-                      ? "Ready to claim"
-                      : state!.status === "finished"
-                      ? "Settled"
-                      : `Round ${state!.currentRound}/${league.rounds}`}
-                  </span>
-                )}
               </div>
 
+              {/* ─── Body ─── */}
+              <div className="flex flex-1 flex-col gap-5 p-6">
               <div className="relative grid grid-cols-3 gap-3 text-[11px]">
                 <Stat label="Entry" value={`${league.entryFee} USDT`} icon={<Coins className="h-3 w-3" />} />
                 <Stat label="Pot" value={`${pot} USDT`} icon={<Trophy className="h-3 w-3" />} />
@@ -98,6 +125,7 @@ function Inner() {
                   {joined ? "Open" : "Enter"}
                   <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                 </span>
+              </div>
               </div>
             </Link>
           );

@@ -8,7 +8,7 @@ import { StatTile } from "@/components/StatTile";
 import { Sparkline, genSpark } from "@/components/Sparkline";
 import { PriceTicker } from "@/components/PriceTicker";
 import { Button } from "@/components/Button";
-import { matchResults } from "@/lib/mockData/matchResults";
+import { LiveMatchFeed } from "@/components/LiveMatchFeed";
 import { useStore } from "@/lib/store";
 import { cardValue } from "@/lib/pricing";
 
@@ -212,31 +212,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* LIVE FEED */}
-      <section className="mx-auto max-w-[1180px] px-8 pt-24 pb-12">
-        <div className="mb-10">
-          <h2 className="section-title flex items-center gap-3">
-            <span className="live-dot" />
-            Live match feed
-          </h2>
-          <p className="section-sub mt-2">Most recent results · drives card prices</p>
-        </div>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {matchResults.slice(-6).reverse().map((r) => (
-            <div
-              key={r.id}
-              className="panel p-5"
-            >
-              <div className="flex items-center justify-between text-[11px] text-text-muted">
-                <span className="font-mono">{r.id.toUpperCase()}</span>
-                <span className="font-mono">{r.date}</span>
-              </div>
-              <div className="mt-3 text-[15px] font-semibold">{r.matchup}</div>
-              <div className="mt-2 text-[13px] leading-relaxed text-text-secondary">{r.note}</div>
-            </div>
-          ))}
-        </div>
-      </section>
+      {/* LIVE FEED — real fixtures + odds from Polymarket */}
+      <LiveMatchFeed />
 
       {/* CTA */}
       <section className="mx-auto max-w-[1180px] px-8 pt-24">

@@ -79,7 +79,7 @@ function Inner() {
               <PackArt tier={pack.tier} />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="section-sub">FIFA 26 · Pack</div>
+              <div className="section-sub">Predicards · Pack</div>
               <h1 className="mt-1 text-3xl font-bold capitalize tracking-tight">{pack.tier} pack</h1>
               <p className="mt-2 max-w-md text-sm leading-relaxed text-text-secondary">
                 {pack.description}

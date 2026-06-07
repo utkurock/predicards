@@ -212,3 +212,33 @@ export function tierColor(tier: LeagueTier): string {
   if (tier === "silver") return "#9CA3AF";
   return "#B47CFF";
 }
+
+// Rich, metallic per-tier theming for the league hero banners. `grad` is a layered
+// CSS background (sheen + base gradient); `glyph` tints the emblem watermark.
+export type TierTheme = { grad: string; glyph: string; ring: string };
+
+export function tierTheme(tier: LeagueTier): TierTheme {
+  if (tier === "bronze")
+    return {
+      grad:
+        "radial-gradient(120% 100% at 0% 0%, rgba(255,255,255,0.35), transparent 45%)," +
+        "linear-gradient(135deg, #6E3F15 0%, #C8862B 42%, #F2C75B 100%)",
+      glyph: "#FFE6A3",
+      ring: "#F2C75B",
+    };
+  if (tier === "silver")
+    return {
+      grad:
+        "radial-gradient(120% 100% at 0% 0%, rgba(255,255,255,0.40), transparent 45%)," +
+        "linear-gradient(135deg, #4A515E 0%, #8E96A4 45%, #D7DCE3 100%)",
+      glyph: "#EEF1F5",
+      ring: "#D7DCE3",
+    };
+  return {
+    grad:
+      "radial-gradient(120% 100% at 0% 0%, rgba(255,255,255,0.35), transparent 45%)," +
+      "linear-gradient(135deg, #4A1F8F 0%, #8B53E6 45%, #C9A6FF 100%)",
+    glyph: "#E9DAFF",
+    ring: "#C9A6FF",
+  };
+}

@@ -67,7 +67,7 @@ export function PackPicker() {
           </div>
           <div className="mt-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="h-12 w-12 overflow-hidden rounded-lg">
+              <div className="h-16 w-12 shrink-0 overflow-hidden rounded-lg">
                 <PackArt tier={selected.tier} />
               </div>
               <span className="bignum text-3xl capitalize">{selected.tier}</span>

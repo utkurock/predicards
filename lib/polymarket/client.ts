@@ -157,6 +157,15 @@ export async function fetchMarketsByCollectionId(id: string): Promise<Market[]> 
   return c ? fetchCollectionMarkets(c) : [];
 }
 
+// Every collection's markets, merged and sorted most-traded first. Powers the unified
+// marketplace grid where collection filtering happens client-side.
+export async function fetchAllMarkets(): Promise<Market[]> {
+  const lists = await Promise.all(COLLECTIONS.map((c) => fetchCollectionMarkets(c)));
+  const all = lists.flat();
+  all.sort((a, b) => (b.volume ?? 0) - (a.volume ?? 0));
+  return all;
+}
+
 export type CollectionSummary = {
   id: CollectionId;
   marketCount: number;
