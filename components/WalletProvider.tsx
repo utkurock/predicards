@@ -71,7 +71,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   const connect = useCallback(async () => {
     setError(null);
     if (!firebaseConfigured) {
-      setError("Firebase isn't configured yet — fill in .env.local.");
+      setError("Firebase isn't configured yet. Fill in .env.local.");
       return;
     }
     const provider = getInjectedProvider();

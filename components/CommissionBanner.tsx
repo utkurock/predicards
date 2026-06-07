@@ -36,7 +36,7 @@ export function CommissionBanner() {
   const handleClaim = () => {
     const got = claim();
     if (got > 0) toast(`Claimed ${got.toFixed(2)} USDT in commission.`, "success");
-    else toast("Nothing to claim yet — earn as your markets trade.", "info");
+    else toast("Nothing to claim yet. Earn as your markets trade.", "info");
   };
 
   return (

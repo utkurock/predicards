@@ -22,7 +22,7 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Predicards — Open a Pack. Predict the Cup.",
+  title: "Predicards: Open a Pack. Predict the Cup.",
   description:
     "World Cup prediction market meets Panini-style collectibles. Open packs, complete sets, activate parlays.",
 };

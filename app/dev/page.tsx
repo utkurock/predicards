@@ -67,7 +67,7 @@ function Inner() {
       <div className="mb-8 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
         <ActionCard
           title="Seed demo collection"
-          desc="Pre-populates the album one card short of Semifinalist Quartet — demo-ready."
+          desc="Pre-populates the album one card short of Semifinalist Quartet. Demo-ready."
           onClick={() => {
             seedDemo();
             toast("Demo collection seeded.", "success");
@@ -82,7 +82,7 @@ function Inner() {
         />
         <ActionCard
           title="Reset all state"
-          desc="Wipes your collection, balance, parlays — back to defaults."
+          desc="Wipes your collection, balance, parlays. Back to defaults."
           danger
           onClick={() => {
             if (confirm("Reset everything?")) {
@@ -238,7 +238,7 @@ function RatesPanel() {
     <div className="mb-8 panel p-5">
       <div className="text-sm font-semibold">Commission rates</div>
       <div className="text-[10px] uppercase tracking-wider text-text-muted">
-        Live — applies to claims + the buy route
+        Live. Applies to claims + the buy route
       </div>
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
         <label className="block">

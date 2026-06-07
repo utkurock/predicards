@@ -184,6 +184,7 @@ body {
 }
 .btn-lime:active:not(:disabled) {
   background: rgb(var(--accent-dim));
+  transform: translateY(1px);
 }
 .btn-lime:disabled {
   background: rgb(var(--accent) / 0.18);
@@ -241,6 +242,9 @@ body {
   background: rgb(var(--accent) / 0.1);
   border-color: rgb(var(--accent) / 0.4);
   color: rgb(var(--accent-dim));
+}
+.pill:active {
+  transform: translateY(1px);
 }
 
 /* Data tile (stat card) — frosted white with a faint accent sheen */
@@ -349,4 +353,21 @@ body {
 @keyframes tickerScroll {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
+}
+
+/* ─── Reduced motion (skill 6.B, mandatory) ───
+   Honour the user's OS setting: kill perpetual loops (ticker / shimmer /
+   pulse) and collapse transitions so nothing animates against their wishes. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .ticker {
+    animation: none !important;
+  }
 }

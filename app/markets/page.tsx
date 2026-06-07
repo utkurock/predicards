@@ -69,7 +69,7 @@ export default function MarketsPage() {
         <p className="section-sub">Powered by Polymarket</p>
         <h1 className="section-title">Marketplace</h1>
         <p className="max-w-2xl text-sm leading-relaxed text-text-secondary">
-          Every live prediction market, in one place. Filter by collection — own a World Cup card
+          Every live prediction market, in one place. Filter by collection to own a World Cup card
           and you earn a {Math.round(IN_APP_FEE_RATE * 100)}% commission on every secondary sale plus
           passive yield as its market trades. More collections become mintable soon.
         </p>

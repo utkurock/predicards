@@ -102,7 +102,7 @@ function Inner() {
             <div>
               <div className="text-sm font-semibold">
                 {parlay.status === "settled_won"
-                  ? "Parlay won — payout credited."
+                  ? "Parlay won. Payout credited."
                   : parlay.status === "settled_lost"
                   ? "One leg resolved NO. Parlay settled."
                   : isActive

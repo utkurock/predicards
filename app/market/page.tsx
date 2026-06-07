@@ -65,7 +65,7 @@ function Inner() {
 
   const buy = async (listingId: string, price: number, statement: string) => {
     if (balance < price) {
-      toast(`Need ${price} USDT — your balance is ${balance.toFixed(2)}.`, "error");
+      toast(`Need ${price} USDT. Your balance is ${balance.toFixed(2)}.`, "error");
       return;
     }
     const res = await buyListing(listingId);

@@ -141,7 +141,7 @@ function Inner() {
                 </Button>
               )}
               <p className="max-w-md text-center text-xs text-text-muted">
-                You&rsquo;re charged {pack.price} USDT when you tear the pack — cards land in your
+                You&rsquo;re charged {pack.price} USDT when you tear the pack. Cards land in your
                 album instantly. Higher rarities animate slower so you can savor the moment.
               </p>
             </motion.div>

@@ -47,7 +47,7 @@ export function ThemeToggle() {
   return (
     <button
       onClick={toggle}
-      title={`Theme: ${isDark ? "Dark" : "Light"} — click to switch`}
+      title={`Theme: ${isDark ? "Dark" : "Light"} (click to switch)`}
       aria-label="Toggle color theme"
       className="flex h-7 w-7 items-center justify-center rounded-full border border-line-subtle bg-bg-card text-text-secondary shadow-soft transition-colors hover:border-line hover:text-text-primary"
     >

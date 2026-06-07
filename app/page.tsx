@@ -9,6 +9,7 @@ import { Sparkline, genSpark } from "@/components/Sparkline";
 import { PriceTicker } from "@/components/PriceTicker";
 import { Button } from "@/components/Button";
 import { LiveMatchFeed } from "@/components/LiveMatchFeed";
+import { Reveal } from "@/components/Reveal";
 import { useStore } from "@/lib/store";
 import { cardValue } from "@/lib/pricing";
 
@@ -82,7 +83,7 @@ export default function LandingPage() {
           <h2 className="section-title">Overview</h2>
           <p className="section-sub mt-2">Network at a glance</p>
         </div>
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        <Reveal className="grid grid-cols-2 gap-4 md:grid-cols-4">
           <StatTile
             label="Markets live"
             value="30"
@@ -110,12 +111,12 @@ export default function LandingPage() {
           <StatTile
             label="Resolved"
             value="07"
-            delta="m1–m7"
+            delta="m1-m7"
             deltaSign="neutral"
             spark={genSpark(44, 32, 0.1)}
             sparkColor="#E8B547"
           />
-        </div>
+        </Reveal>
       </section>
 
       {/* TOP MOVERS — its own breathing room */}
@@ -123,7 +124,6 @@ export default function LandingPage() {
         <div className="mb-8 flex items-end justify-between">
           <div>
             <h2 className="section-title">Top movers</h2>
-            <p className="section-sub mt-2">Most active markets this hour</p>
           </div>
           <Link
             href="/market"
@@ -197,9 +197,8 @@ export default function LandingPage() {
       <section className="mx-auto max-w-[1180px] px-8 pt-24 pb-12">
         <div className="mb-10 max-w-md">
           <h2 className="section-title">Three pillars, one product</h2>
-          <p className="section-sub mt-2">What makes this design economically meaningful</p>
         </div>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <Reveal className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <Pillar n="01" title="Rarity tracks implied probability">
             Saudi-wins-quarterfinal is Legendary because the odds are tiny but the payout is huge.
           </Pillar>
@@ -209,7 +208,7 @@ export default function LandingPage() {
           <Pillar n="03" title="Sets unlock parlay bonuses">
             Complete Semifinalist Quartet for 1.5×. Mythic Wildcards for 2.0×.
           </Pillar>
-        </div>
+        </Reveal>
       </section>
 
       {/* LIVE FEED — real fixtures + odds from Polymarket */}

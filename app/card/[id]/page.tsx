@@ -148,7 +148,7 @@ function Inner() {
               <span>Mint price {card.impliedOddsAtMint} USDT</span>
               <span>Fair value est. {fv.toFixed(3)} USDT</span>
             </div>
-            <p className="mt-1.5 text-[10px] italic text-text-muted">Illustrative — no live order book in this prototype.</p>
+            <p className="mt-1.5 text-[10px] italic text-text-muted">Illustrative. No live order book in this prototype.</p>
           </Section>
 
           {/* Actions */}
@@ -241,7 +241,7 @@ function Inner() {
             )}
             {isSettled && (
               <div className="rounded-lg border border-line bg-bg-card px-3 py-2 text-sm text-text-secondary">
-                Settled {card.status === "settled_won" ? "YES — payout credited." : "NO — position closed."}
+                Settled {card.status === "settled_won" ? "YES. Payout credited." : "NO. Position closed."}
               </div>
             )}
           </div>

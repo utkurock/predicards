@@ -483,7 +483,7 @@ function Stage({ leagueId }: { leagueId: string }) {
               })}
             {state.currentRound === 0 && (
               <div className="px-5 py-8 text-center text-xs text-text-muted">
-                No matches yet — play the first round.
+                No matches yet. Play the first round.
               </div>
             )}
           </div>
